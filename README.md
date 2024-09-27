@@ -1,1 +1,1 @@
-#library for easy creation of Aws signature
+# Library for easy creation of Aws signature
