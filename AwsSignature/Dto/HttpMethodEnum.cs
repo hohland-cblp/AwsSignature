@@ -1,4 +1,4 @@
-namespace AwsSigner;
+namespace AwsSignature;
 
 public enum HttpMethodEnum
 {

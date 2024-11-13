@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace AwsSigner;
+namespace AwsSignature;
 
 public class AwsSignatureV4
 {
@@ -19,7 +19,7 @@ public class AwsSignatureV4
     public static string ComputeSignature(ComputeSignatureRequest request)
     {
         DateTime requestDateTime = DateTime.UtcNow;
-        string dateTimeStampISO = requestDateTime.ToString(ISO8601BasicFormat, CultureInfo.InvariantCulture);
+        string dateTimeStampIso = requestDateTime.ToString(ISO8601BasicFormat, CultureInfo.InvariantCulture);
         string dateStamp = requestDateTime.ToString(DateStringFormat, CultureInfo.InvariantCulture);
         string region = request.Region;
         string service = request.Service;
@@ -34,7 +34,7 @@ public class AwsSignatureV4
         }
         
         
-        request.Headers.Add(X_Amz_Date, dateTimeStampISO);
+        request.Headers.Add(X_Amz_Date, dateTimeStampIso);
         if (!request.Headers.ContainsKey(X_Amz_Content_SHA256))
             request.Headers.Add(X_Amz_Content_SHA256, request.BodyHash);
 
@@ -51,13 +51,13 @@ public class AwsSignatureV4
         
         string scope = $"{dateStamp}/{region}/{service}/{AWS4_REQUEST}";
         string stringToSign = $"AWS4-HMAC-SHA256\n" +
-                              $"{dateTimeStampISO}\n" +
+                              $"{dateTimeStampIso}\n" +
                               $"{scope}\n" +
                               $"{ToHexString(HashAlgorithm.Create("SHA256").ComputeHash(Encoding.UTF8.GetBytes(canonicalRequest)),true)}";
         
 
         var kha= KeyedHashAlgorithm.Create("HMACSHA256");
-        kha.Key = Encoding.UTF8.GetBytes($"AWS4{request.AwsSecretKey}");
+        kha!.Key = Encoding.UTF8.GetBytes($"AWS4{request.AwsSecretKey}");
         var dateKey = kha.ComputeHash(Encoding.UTF8.GetBytes(dateStamp));
         kha.Key = dateKey;
         var dateRegionKey = kha.ComputeHash(Encoding.UTF8.GetBytes(region));

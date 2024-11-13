@@ -1,5 +1,5 @@
 
-namespace AwsSigner;
+namespace AwsSignature;
 
 public class ComputeSignatureRequest
 {
