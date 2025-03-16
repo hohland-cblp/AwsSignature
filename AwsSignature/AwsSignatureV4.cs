@@ -7,16 +7,55 @@ namespace AwsSignature;
 public class AwsSignatureV4
 {
     // Constants
-    public const string AWS_SCHEMA = "AWS4-HMAC-SHA256";
     public const string EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-    public const string ISO8601BasicFormat = "yyyyMMddTHHmmssZ";
-    public const string DateStringFormat = "yyyyMMdd";
-    public const string X_Amz_Date = "X-Amz-Date";
-    public const string X_Amz_Content_SHA256 = "X-Amz-Content-Sha256";
-    public const string AWS4_REQUEST = "aws4_request";
+    private const string AWS_SCHEMA = "AWS4-HMAC-SHA256";
+    private const string ISO8601BasicFormat = "yyyyMMddTHHmmssZ";
+    private const string DateStringFormat = "yyyyMMdd";
+    private const string X_Amz_Date = "X-Amz-Date";
+    private const string X_Amz_Content_SHA256 = "X-Amz-Content-Sha256";
+    private const string AWS4_REQUEST = "aws4_request";
+    private const string UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+
+
+    /// <summary>
+    /// Compute signature v4
+    /// </summary>
+    /// <param name="uri">Service uri</param>
+    /// <param name="httpMethod">Http request method</param>
+    /// <param name="service">Aws service name. e.g. s3, ec2</param>
+    /// <param name="accessKey">You AWS access key</param>
+    /// <param name="secretKey">You AWS secret key</param>
+    /// <param name="region">Service region. Not require. Default value: "default"</param>
+    /// <param name="headers">Dictionary with Content-MD5 and x-amz-* http headers you want to add. Not require. Default value: empty dictionary</param>
+    /// <param name="bodyHash">Hashed payload. Not require. Default value: empty body hash SHA256.</param>
+    /// <param name="unsignedPayload">Set whether s3 will check payload hash. Not require. Default value: false</param>
+    public static Dictionary<string, string> ComputeSignature(Uri uri, HttpMethod httpMethod, string service,
+        string accessKey, string secretKey, string region = "default", Dictionary<string, string> headers = null,
+        string bodyHash = EMPTY_BODY_SHA256, bool unsignedPayload = false)
+    {
+        var request = new ComputeSignatureV4Request
+        {
+            Uri = uri,
+            HttpMethod = httpMethod,
+            Service = service,
+            AwsAccessKey = accessKey,
+            AwsSecretKey = secretKey,
+            Region = region,
+            Headers = headers is null ? new Dictionary<string, string>() : headers,
+            BodyHash = bodyHash,
+            UnsignedPayload = unsignedPayload
+        };
+
+        return ComputeSignature(request);
+    }
     
     
-    public static string ComputeSignature(ComputeSignatureRequest request)
+    /// <summary>
+    /// Compute signature v4
+    /// </summary>
+    /// <returns>Dictionary with all required parameters to send an authorized request</returns>
+    /// <param name="request">request for signature calculation</param>
+    public static Dictionary<string, string> ComputeSignature(ComputeSignatureV4Request request)
     {
         DateTime requestDateTime = DateTime.UtcNow;
         string dateTimeStampIso = requestDateTime.ToString(ISO8601BasicFormat, CultureInfo.InvariantCulture);
@@ -36,17 +75,20 @@ public class AwsSignatureV4
         
         request.Headers.Add(X_Amz_Date, dateTimeStampIso);
         if (!request.Headers.ContainsKey(X_Amz_Content_SHA256))
-            request.Headers.Add(X_Amz_Content_SHA256, request.BodyHash);
+            if (request.UnsignedPayload)
+                request.Headers.Add(X_Amz_Content_SHA256, UNSIGNED_PAYLOAD);
+            else
+                request.Headers.Add(X_Amz_Content_SHA256, request.BodyHash);
 
         
 
         string canonicalRequest = CanonicalRequest(
-            request.HttpMethod.ToString(),
+            request.HttpMethod.Method,
             CanonicalUri(uri),
             CanonicalQueryString(uri),
             CanonicalHeaders(request.Headers),
             SignedHeaders(request.Headers),
-            request.BodyHash);
+            request.UnsignedPayload ? UNSIGNED_PAYLOAD : request.BodyHash);
         
         
         string scope = $"{dateStamp}/{region}/{service}/{AWS4_REQUEST}";
@@ -69,12 +111,15 @@ public class AwsSignatureV4
         string signature = ToHexString(kha.ComputeHash(Encoding.UTF8.GetBytes(stringToSign)), true);
 
 
+        
         string authHeader = AWS_SCHEMA +
                             $" Credential={request.AwsAccessKey}/{dateStamp}/{region}/{service}/{AWS4_REQUEST}, " +
                             $"SignedHeaders={SignedHeaders(request.Headers)}, " +
                             $"Signature={signature}";
+        
+        request.Headers.Add("Authorization", authHeader);
 
-        return authHeader;
+        return request.Headers;
     }
 
 
@@ -116,8 +161,8 @@ public class AwsSignatureV4
         
         var encoded = new StringBuilder(s.Length * 2);
         
-        string unreservedChars = String.Concat(validUrlCharacters, (true ? "/:" : ""));
-
+        string unreservedChars = String.Concat(validUrlCharacters, (true ? "/" : ""));
+        
         foreach (char symbol in Encoding.UTF8.GetBytes(s))
         {
             if (unreservedChars.IndexOf(symbol) != -1)
@@ -170,22 +215,20 @@ public class AwsSignatureV4
 
     private static string CanonicalQueryString(Uri uri)
     {
-        Dictionary<string, string> dictionary = new Dictionary<string, string>();
-        string query;
-
         if (string.IsNullOrEmpty(uri.Query))
             return "";
-        
-        query = uri.Query.Substring(1);
+
+        var indexOfQuery = uri.ToString().IndexOf("?");
+        var query = uri.ToString().Substring(indexOfQuery+1);
         
 
-        dictionary = query.Split('&').Select(p => p.Split('='))
+        var dictionary = query.Split('&').Select(p => p.Split('='))
             .ToDictionary(s => s[0],
                           s => s.Length > 1 ? s[1] : "");
 
         StringBuilder sb = new StringBuilder();
 
-        List<string> keys = new List<string>(dictionary.Keys);
+        var keys = new List<string>(dictionary.Keys);
         keys.Sort(StringComparer.Ordinal);
         
         foreach (var key in keys)
@@ -213,6 +256,7 @@ public class AwsSignatureV4
             sb.Append($"{header.ToLower()}:{sortedDictionary[header].Trim()}\n");
         }
         
+            
         return sb.ToString();
     }
 

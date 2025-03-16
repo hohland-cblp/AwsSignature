@@ -5,10 +5,10 @@
         <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.1.0</Version>
+        <Version>1.1.1</Version>
         <Title>Library for easy creation of Aws signature</Title>
         <Authors>hohland_cblp</Authors>
-		<PackageTags>aws-signature aws signature aws-signaturev4 v4 authorization</PackageTags>
+        <PackageTags>aws-signature aws signature aws-signaturev4 v4 authorization</PackageTags>
         <PackageReleaseNotes>fix namespace naming</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/HOHLAND-CblP/AwsSignature</PackageProjectUrl>
