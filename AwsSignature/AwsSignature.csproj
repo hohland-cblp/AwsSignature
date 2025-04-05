@@ -1,21 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
+        <TargetFrameworks>net7.0;net8.0;net9.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>1.1.1</Version>
+        <Version>1.1.2</Version>
         <Title>Library for easy creation of Aws signature</Title>
         <Authors>hohland_cblp</Authors>
         <PackageTags>aws-signature aws signature aws-signaturev4 v4 authorization</PackageTags>
-        <PackageReleaseNotes>fix namespace naming</PackageReleaseNotes>
+        <PackageReleaseNotes>Make constants in AwsSignatureV4.cs public</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://github.com/HOHLAND-CblP/AwsSignature</PackageProjectUrl>
         <PackageLicenseUrl>https://raw.githubusercontent.com/HOHLAND-CblP/AwsSignature/refs/heads/main/LICENSE</PackageLicenseUrl>
         <RepositoryUrl>https://github.com/HOHLAND-CblP/AwsSignature</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Description>Library for creating AWS signature V4</Description>
     </PropertyGroup>
 
 </Project>

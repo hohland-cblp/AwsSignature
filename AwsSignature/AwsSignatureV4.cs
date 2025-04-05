@@ -8,13 +8,13 @@ public class AwsSignatureV4
 {
     // Constants
     public const string EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-    private const string AWS_SCHEMA = "AWS4-HMAC-SHA256";
-    private const string ISO8601BasicFormat = "yyyyMMddTHHmmssZ";
-    private const string DateStringFormat = "yyyyMMdd";
-    private const string X_Amz_Date = "X-Amz-Date";
-    private const string X_Amz_Content_SHA256 = "X-Amz-Content-Sha256";
-    private const string AWS4_REQUEST = "aws4_request";
-    private const string UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
+    public const string AWS_SCHEMA = "AWS4-HMAC-SHA256";
+    public const string ISO8601BasicFormat = "yyyyMMddTHHmmssZ";
+    public const string DateStringFormat = "yyyyMMdd";
+    public const string X_Amz_Date = "X-Amz-Date";
+    public const string X_Amz_Content_SHA256 = "X-Amz-Content-Sha256";
+    public const string AWS4_REQUEST = "aws4_request";
+    public const string UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
 
     /// <summary>
